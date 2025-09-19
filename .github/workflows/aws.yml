@@ -42,7 +42,20 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.ECR_REPO }}:latest
 
-      # 6️⃣ Update EKS deployment with new image
+      # 6️⃣ Setup kubectl
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.30.0' # match your cluster version
+
+      # 7️⃣ Update kubeconfig for EKS
+      - name: Configure kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region us-east-1 \
+            --name cicd-next-cluster   # 👈 replace with your EKS cluster name
+
+      # 8️⃣ Update EKS deployment with new image
       - name: Update Kubernetes deployment
         run: |
           kubectl set image deployment/next-app next-app=${{ secrets.ECR_REPO }}:latest
