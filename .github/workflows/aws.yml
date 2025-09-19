@@ -35,6 +35,7 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64 \
+            -f src/Dockerfile \
             -t ${{ secrets.ECR_REPO }}:latest .
 
       # 5️⃣ Push Docker image to ECR
