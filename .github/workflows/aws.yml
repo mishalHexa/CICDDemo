@@ -1,5 +1,11 @@
 name: CI/CD
 
+# Trigger on push to main (change branch as needed)
+on:
+  push:
+    branches:
+      - main
+
 permissions:
   id-token: write
   contents: read
@@ -7,11 +13,36 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Configure AWS credentials using OIDC
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: us-east-1
+
+      # 3️⃣ Login to ECR
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 4️⃣ Build Docker image (amd64 for EKS)
+      - name: Build Docker image
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            -t ${{ secrets.ECR_REPO }}:latest .
+
+      # 5️⃣ Push Docker image to ECR
+      - name: Push Docker image
+        run: docker push ${{ secrets.ECR_REPO }}:latest
+
+      # 6️⃣ Update EKS deployment with new image
+      - name: Update Kubernetes deployment
+        run: |
+          kubectl set image deployment/next-app next-app=${{ secrets.ECR_REPO }}:latest
+          kubectl rollout status deployment/next-app
