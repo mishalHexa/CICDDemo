@@ -39,7 +39,7 @@ jobs:
             -f src/Dockerfile \
             -t ${{ secrets.ECR_REPO }}:$IMAGE_TAG \
             -t ${{ secrets.ECR_REPO }}:latest \
-            --push.
+            --push .
 
       # Push Docker image to ECR
       - name: Push Docker image
