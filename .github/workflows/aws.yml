@@ -31,31 +31,34 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       # 4️⃣ Build Docker image (amd64 for EKS)
-      - name: Build Docker image
+      - name: Build & Push Docker image
         run: |
+          IMAGE_TAG=${{ github.sha }}
           docker buildx build \
             --platform linux/amd64 \
             -f src/Dockerfile \
-            -t ${{ secrets.ECR_REPO }}:latest .
+            -t ${{ secrets.ECR_REPO }}::$IMAGE_TAG \
+            -t ${{ secrets.ECR_REPO }}:latest 
+            --push.
 
-      # 5️⃣ Push Docker image to ECR
+      # Push Docker image to ECR
       - name: Push Docker image
         run: docker push ${{ secrets.ECR_REPO }}:latest
 
-      # 6️⃣ Setup kubectl
+      # 5️⃣ Setup kubectl
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
         with:
           version: 'v1.30.0' # match your cluster version
 
-      # 7️⃣ Update kubeconfig for EKS
+      # 6️⃣ Update kubeconfig for EKS
       - name: Configure kubeconfig
         run: |
           aws eks update-kubeconfig \
             --region us-east-1 \
             --name cicd-next-cluster   # 👈 replace with your EKS cluster name
 
-      # 8️⃣ Update EKS deployment with new image
+      # 7️⃣ Update EKS deployment with new image
       - name: Update Kubernetes deployment
         run: |
           kubectl set image deployment/next-app next-app=${{ secrets.ECR_REPO }}:latest
