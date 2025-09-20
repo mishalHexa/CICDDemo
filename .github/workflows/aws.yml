@@ -57,5 +57,6 @@ jobs:
       # 7️⃣ Update EKS deployment with new image
       - name: Update Kubernetes deployment
         run: |
+          IMAGE_TAG=${{ github.sha }}
           kubectl set image deployment/next-app next-app=${{ secrets.ECR_REPO }}:$IMAGE_TAG
           kubectl rollout status deployment/next-app
