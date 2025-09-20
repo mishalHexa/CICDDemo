@@ -41,10 +41,6 @@ jobs:
             -t ${{ secrets.ECR_REPO }}:latest \
             --push .
 
-      # Push Docker image to ECR
-      - name: Push Docker image
-        run: docker push ${{ secrets.ECR_REPO }}:latest
-
       # 5️⃣ Setup kubectl
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
@@ -61,5 +57,5 @@ jobs:
       # 7️⃣ Update EKS deployment with new image
       - name: Update Kubernetes deployment
         run: |
-          kubectl set image deployment/next-app next-app=${{ secrets.ECR_REPO }}:latest
+          kubectl set image deployment/next-app next-app=${{ secrets.ECR_REPO }}:$IMAGE_TAG
           kubectl rollout status deployment/next-app
