@@ -37,7 +37,7 @@ jobs:
           docker buildx build \
             --platform linux/amd64 \
             -f src/Dockerfile \
-            -t ${{ secrets.ECR_REPO }}::$IMAGE_TAG \
+            -t ${{ secrets.ECR_REPO }}:$IMAGE_TAG \
             -t ${{ secrets.ECR_REPO }}:latest \
             --push.
 
